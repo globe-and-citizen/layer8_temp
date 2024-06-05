@@ -200,6 +200,8 @@ func Server(resourceService interfaces.IService, oauthService *oauthSvc.Service)
 			// Proxy Server endpoints
 			case path == "/init-tunnel":
 				handlers.InitTunnel(w, r)
+			case path == "/refresh-jwts":
+				handlers.RefreshJWTs(w, r)
 			case path == "/error":
 				handlers.TestError(w, r)
 				// TODO: For later, to be discussed more

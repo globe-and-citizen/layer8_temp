@@ -51,8 +51,8 @@ app.use('/test', (req, res) => {
 
 app.post("/", (req, res) => {
   console.log("Enpoint for testing");
-  console.log("headers: ", req.headers);
-  console.log("req.body: ", req.body);
+  // console.log("headers: ", req.headers);
+  // console.log("req.body: ", req.body);
   res.setHeader("x-header-test", "1234");
   res.send("Server has registered a POST.");
 });

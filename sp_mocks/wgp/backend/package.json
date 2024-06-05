@@ -24,7 +24,6 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
-    "layer8_middleware": "^0.0.17",
     "popsicle": "^8.1.0"
   },
   "devDependencies": {

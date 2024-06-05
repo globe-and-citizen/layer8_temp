@@ -253,6 +253,114 @@ func Tunnel(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
+func RefreshJWTs(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("\n\n*************")
+	fmt.Println(r.Method) // > GET  | > POST
+	fmt.Println(r.URL)    // (http://localhost:5000/api/v1 ) > /api/v1
+
+	backend := r.URL.Query().Get("backend")
+	if backend == "" {
+		res := utils.BuildErrorResponse("Failed to get User. Malformed query string.", "", utils.EmptyObj{})
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			log.Printf("Error sending response: %v", err)
+		}
+		return
+	}
+
+	backendWithoutProtocol := utils.RemoveProtocolFromURL(backend)
+
+	srv := r.Context().Value("service").(interfaces.IService)
+	client, err := srv.GetClientDataByBackendURL(backendWithoutProtocol)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	mpJWT, err := utilities.GenerateStandardToken(os.Getenv("MP_123_SECRET_KEY"))
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println("MP JWT: ", mpJWT)
+
+	// body[key]value{
+	// 	encryptedBody: "asdlfkwia9281",
+	// 	tunnelBody: "this is plain text"
+	//   }
+
+	bodyMap := map[string]interface{}{}
+	bodyMap["mp-jwt"] = mpJWT
+
+	fmt.Println("bodyMap: ", bodyMap)
+
+	bodyBytes, err := json.Marshal(bodyMap)
+	if err != nil {
+		fmt.Println("Error marshalling body:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println("bodyBytes: ", string(bodyBytes))
+
+	// r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	// create the request
+	req, err := http.NewRequest(r.Method, backend, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// send the request
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Make a buffer to hold response body
+	var resBodyTemp bytes.Buffer
+
+	// Copy the response body to buffer
+	resBodyTemp.ReadFrom(res.Body)
+
+	// Make a copy of the response body to send back to client
+	res.Body = io.NopCloser(bytes.NewBuffer(resBodyTemp.Bytes()))
+
+	fmt.Println("\nReceived response from 8000:", backend, " of code: ", res.StatusCode)
+	upJWT, err := utils.GenerateUPTokenJWT(os.Getenv("UP_999_SECRET_KEY"), client.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Make a json response of server_pubKeyECDH and up_JWT and send it back to client
+	data := map[string]interface{}{
+		"up-JWT": upJWT,
+	}
+
+	fmt.Println("Data returning to the user from the Service Provider: ", data)
+
+	datatoSend, err := json.Marshal(&data)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(datatoSend)
+
+	TotalTunnelInitiated.Add(r.Context(), 1,
+		metric.WithAttributes(
+			attribute.String("client_id", client.ID),
+		),
+	)
+}
+
 func TestError(w http.ResponseWriter, r *http.Request) {
 	err := fmt.Errorf("this is a test error")
 	fmt.Println("Test error endpoint:", err.Error())
