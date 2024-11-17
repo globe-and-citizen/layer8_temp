@@ -58,4 +58,8 @@ async function pingBackend() {
     </div>
   </div>
 </template>
-<style></style>
+<style>
+a, li {
+  color: #000 !important;
+}
+</style>
