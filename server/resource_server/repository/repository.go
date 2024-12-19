@@ -324,3 +324,30 @@ func (r *Repository) IsBackendURIExists(backendURL string) (bool, error) {
 	}
 	return count > 0, nil
 }
+
+func (r *Repository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount string) (string, string, error) {
+	user := models.User{
+		Username:       req.Username,
+		Salt:           salt,
+		IterationCount: iterCount,
+	}
+
+	tx := r.connection.Begin()
+
+	err := tx.Create(&user).Error
+	if err != nil {
+		tx.Rollback()
+		return "", "", fmt.Errorf("could not create user: %e", err)
+	}
+
+	// var createdUser models.User
+	// err = tx.Where("username = ?", req.Username).First(&createdUser).Error
+	// if err != nil {
+	// 	tx.Rollback()
+	// 	return "", "", fmt.Errorf("could not fetch created user: %w", err)
+	// }
+
+	// tx.Commit()
+
+	return salt, iterCount, nil
+}

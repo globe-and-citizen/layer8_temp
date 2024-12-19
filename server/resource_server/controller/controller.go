@@ -554,3 +554,33 @@ func validateHttpMethod(w http.ResponseWriter, actualMethod string, expectedMeth
 
 	return true
 }
+
+func RegisterUserPrecheck(w http.ResponseWriter, r *http.Request) {
+	if !validateHttpMethod(w, r.Method, http.MethodPost) {
+		return
+	}
+
+	newService := r.Context().Value("service").(interfaces.IService)
+
+	iterCount := os.Getenv("SCRAM_ITERATION_COUNT")
+
+	request, err := utils.DecodeJsonFromRequest[dto.RegisterUserPrecheckDTO](w, r.Body)
+	if err != nil {
+		return
+	}
+
+	registerUserPrecheckResp, err := newService.RegisterUserPrecheck(request, iterCount)
+	if err != nil {
+		utils.HandleError(w, http.StatusBadRequest, "Failed to get client profile", err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(registerUserPrecheckResp); err != nil {
+		utils.HandleError(
+			w,
+			http.StatusInternalServerError,
+			"Internal error",
+			err,
+		)
+	}
+}

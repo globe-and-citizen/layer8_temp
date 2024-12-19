@@ -94,7 +94,7 @@
                   </div>
                   <button id="register-user-button"
                           class="w-full bg-[#4F80E1] rounded-lg text-center text-white py-4 mb-4"
-                          @click="registerUser"
+                          @click="registerUserPrecheck"
                   >
                       Register
                   </button>
@@ -250,6 +250,25 @@
         }, 3000);
       }
 
+      const registerUserPrecheck = async () => {
+        try {
+            const resp = await window.fetch("[[ .ProxyURL ]]/api/v1/register-user-precheck", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: registerUsername.value,
+                }),
+            });
+
+            const registerPrecheckResponseBody = await resp.json();
+            console.log("Response from Register Precheck", registerPrecheckResponseBody)
+        } catch (error) {
+            console.error(error);
+        }
+      }
+
       const app = createApp({
         setup() {
           return {
@@ -267,6 +286,7 @@
             modalWindowActive,
             currMnemonic,
             mnemonicCopied,
+            registerUserPrecheck
           };
         },
       });
