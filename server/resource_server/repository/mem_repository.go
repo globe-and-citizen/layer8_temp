@@ -422,6 +422,29 @@ func (r *MemoryRepository) UpdateUserPassword(username string, password string) 
 	return nil
 }
 
-func (r *MemoryRepository) RegisterUserv2(dto dto.RegisterUserDTOv2) error {
-	return nil
-}
+// func (r *MemoryRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount string) (string, string, error) {
+// 	if _, exists := r.storage[req.Username]; exists {
+// 		return "", "", fmt.Errorf("user already exists: %s", req.Username)
+// 	}
+
+// 	userID := fmt.Sprintf("%d", len(r.storage))
+
+// 	key := fmt.Sprintf("%s:%s", req.Username, iterCount)
+
+// 	r.storage[key] = map[string]string{
+// 		"user_id":       userID,
+// 		"username":      req.Username,
+// 		"salt":          salt,
+// 		"iterationCount": iterCount,
+// 	}
+
+// 	r.storage[req.Username] = map[string]string{
+// 		"salt":     salt,
+// 		"password": key,
+// 	}
+// 	r.storage[userID] = map[string]string{
+// 		"password": key,
+// 	}
+
+// 	return salt, iterCount, nil
+// }
