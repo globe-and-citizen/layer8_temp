@@ -1206,3 +1206,36 @@ func TestUpdateUserPassword_Success(t *testing.T) {
 		t.Errorf("There were unfulfilled expectations: %s", err)
 	}
 }
+	
+func TestRegisterPrecheckUser_Success(t *testing.T) {
+    SetUp(t)
+    defer mockDB.Close()
+
+    req := dto.RegisterUserPrecheckDTO{
+        Username: "test_user",
+    }
+    salt := "random_salt"
+    iterCount := "4096"
+
+    mock.ExpectBegin()
+
+    mock.ExpectQuery(
+        regexp.QuoteMeta(
+            `INSERT INTO "users" ("username", "password", "first_name", "last_name", "salt", "email_proof", "verification_code", "zk_key_pair_id", "public_key", "iterationCount") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING "id"`,
+        ),
+    ).WithArgs(
+        req.Username, "", "", "", salt, "", "", 0, "", iterCount,
+    ).WillReturnRows(
+        sqlmock.NewRows([]string{"id"}).AddRow(1),
+    )
+
+    mock.ExpectCommit()
+
+    returnedSalt, returnedIterCount, err := repository.RegisterPrecheckUser(req, salt, iterCount)
+
+    assert.Nil(t, err, "Error should be nil")
+    assert.Equal(t, salt, returnedSalt)
+    assert.Equal(t, iterCount, returnedIterCount)
+
+    assert.Nil(t, mock.ExpectationsWereMet(), "There were unfulfilled expectations!")
+}

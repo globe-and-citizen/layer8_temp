@@ -252,6 +252,11 @@
 
       const registerUserPrecheck = async () => {
         try {
+            if (registerUsername.value === "") {
+                showToastMessage("Please enter all details!", "error");
+                return;
+            }
+
             const resp = await window.fetch("[[ .ProxyURL ]]/api/v1/register-user-precheck", {
                 method: "POST",
                 headers: {

@@ -340,14 +340,9 @@ func (r *Repository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt 
 		return "", "", fmt.Errorf("could not create user: %e", err)
 	}
 
-	// var createdUser models.User
-	// err = tx.Where("username = ?", req.Username).First(&createdUser).Error
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return "", "", fmt.Errorf("could not fetch created user: %w", err)
-	// }
-
-	// tx.Commit()
+	if err := tx.Commit().Error; err != nil {
+		return "", "", fmt.Errorf("could not commit transaction: %w", err)
+	}
 
 	return salt, iterCount, nil
 }

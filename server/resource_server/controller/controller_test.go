@@ -1852,3 +1852,30 @@ func setMockServiceInContext(req *http.Request) *http.Request {
 	ctx := context.WithValue(req.Context(), "service", mockSvc)
 	return req.WithContext(ctx)
 }
+
+func TestRegisterUserPrecheck_Success(t *testing.T) {
+	requestBody := []byte(`{
+		"username": "test_user"
+	}`)
+
+	req, err := http.NewRequest("POST", "/api/v1/register-user-precheck", bytes.NewBuffer(requestBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockService := &MockService{}
+	req = req.WithContext(context.WithValue(req.Context(), "service", mockService))
+
+	t.Setenv("SCRAM_ITERATION_COUNT", "4096")
+
+	rr := httptest.NewRecorder()
+
+	Ctl.RegisterUserPrecheck(rr, req)
+
+	assert.Equal(t, http.StatusCreated, rr.Code)
+
+	response := decodeResponseBodyForResponse(t, rr)
+
+	assert.True(t, response.IsSuccess)
+	assert.Equal(t, "Precheck successful", response.Message)
+}
