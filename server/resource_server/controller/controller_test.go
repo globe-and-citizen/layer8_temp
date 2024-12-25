@@ -1914,6 +1914,80 @@ func TestRegisterUserPrecheck_InvalidIterationCount(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	mockService := &MockService{
+		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, iterCount int) (models.RegisterUserPrecheckResponseOutput, error) {
+			assert.Equal(t, "test_user", req.Username, "Username should match")
+			assert.Equal(t, 4096, iterCount, "Iteration count should match")
+
+			registerUserPrecheckResp := models.RegisterUserPrecheckResponseOutput{
+				Salt:           userSalt,
+				IterationCount: iterCount,
+			}
+
+			return registerUserPrecheckResp, nil
+		},
+	}
+
+	req = req.WithContext(context.WithValue(req.Context(), "service", mockService))
+
+	t.Setenv("SCRAM_ITERATION_COUNT", "4096")
+
+	rr := httptest.NewRecorder()
+
+	Ctl.RegisterUserPrecheck(rr, req)
+
+	assert.Equal(t, http.StatusCreated, rr.Code, "Response code should be 201 Created")
+
+	var response models.RegisterUserPrecheckResponseOutput
+	err = json.NewDecoder(rr.Body).Decode(&response)
+	assert.Nil(t, err, "Response body should be valid JSON")
+	assert.Equal(t, userSalt, response.Salt, "Salt should match the mocked response")
+	assert.Equal(t, 4096, response.IterationCount, "Iteration count should match the mocked response")
+}
+
+func TestRegisterUserPrecheck_InvalidMethod(t *testing.T) {
+	req, err := http.NewRequest("GET", "/api/v1/register-user-precheck", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	Ctl.RegisterUserPrecheck(rr, req)
+
+	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code, "Expected HTTP 405 Method Not Allowed")
+}
+
+func TestRegisterUserPrecheck_InvalidIterationCount(t *testing.T) {
+	requestBody := []byte(`{
+		"username": "test_user"
+	}`)
+
+	req, err := http.NewRequest("POST", "/api/v1/register-user-precheck", bytes.NewBuffer(requestBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockService := &MockService{}
+	req = req.WithContext(context.WithValue(req.Context(), "service", mockService))
+
+	t.Setenv("SCRAM_ITERATION_COUNT", "invalid_value")
+
+	rr := httptest.NewRecorder()
+
+	Ctl.RegisterUserPrecheck(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code, "Expected HTTP 500 Internal Server Error")
+}
+
+func TestRegisterUserPrecheck_InvalidJSON(t *testing.T) {
+	requestBody := []byte(`invalid_json`)
+
+	req, err := http.NewRequest("POST", "/api/v1/register-user-precheck", bytes.NewBuffer(requestBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	mockService := &MockService{}
 	req = req.WithContext(context.WithValue(req.Context(), "service", mockService))
 
