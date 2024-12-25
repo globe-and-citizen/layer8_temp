@@ -417,20 +417,20 @@ func (r *MemoryRepository) UpdateUserPassword(username string, password string) 
 	return nil
 }
 
-func (r *MemoryRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount string) (string, string, error) {
+func (r *MemoryRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error) {
 	if _, exists := r.storage[req.Username]; exists {
-		return "", "", fmt.Errorf("user already exists: %s", req.Username)
+		return "", 0, fmt.Errorf("user already exists: %s", req.Username)
 	}
 
 	userID := fmt.Sprintf("%d", len(r.storage))
 
-	key := fmt.Sprintf("%s:%s", req.Username, iterCount)
+	key := fmt.Sprintf("%s:%d", req.Username, iterCount)
 
 	r.storage[key] = map[string]string{
-		"user_id":       userID,
-		"username":      req.Username,
-		"salt":          salt,
-		"iterationCount": iterCount,
+		"user_id":        userID,
+		"username":       req.Username,
+		"salt":           salt,
+		"iterationCount": "",
 	}
 
 	r.storage[req.Username] = map[string]string{

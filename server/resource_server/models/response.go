@@ -27,5 +27,5 @@ type ClientResponseOutput struct {
 
 type RegisterUserPrecheckResponseOutput struct {
 	Salt           string `json:"salt"`
-	IterationCount string `json:"iterationCount"`
+	IterationCount int    `json:"iterationCount"`
 }

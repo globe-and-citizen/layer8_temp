@@ -94,7 +94,7 @@
                   </div>
                   <button id="register-user-button"
                           class="w-full bg-[#4F80E1] rounded-lg text-center text-white py-4 mb-4"
-                          @click="registerUserPrecheck"
+                          @click="registerUser"
                   >
                       Register
                   </button>
@@ -203,12 +203,27 @@
 
       const registerUser = async () => {
         try {
-          if (registerUsername.value === "" || registerPassword.value === ""
-                  || registerFirstName.value === "" || registerLastName.value === ""
-                  || registerDisplayName.value === "" || registerCountry.value  === "") {
-            showToastMessage("Please enter all details!", "error");
-            return;
-          }
+        //   if (registerUsername.value === "" || registerPassword.value === ""
+        //           || registerFirstName.value === "" || registerLastName.value === ""
+        //           || registerDisplayName.value === "" || registerCountry.value  === "") {
+        //     showToastMessage("Please enter all details!", "error");
+        //     return;
+        //   }
+
+          const respOne = await window.fetch("[[ .ProxyURL ]]/api/v1/register-user-precheck", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                  username: registerUsername.value,
+              }),
+          });
+
+          const registerPrecheckResponseBody = await respOne.json();
+          console.log("Response from Register Precheck", registerPrecheckResponseBody)
+          return;
+          // From here implementation should be continued
 
           currMnemonic.value = mnemonic.generateBip39Mnemonic();
           const keyPair = mnemonic.getPrivateAndPublicKeys(currMnemonic.value);
@@ -250,30 +265,6 @@
         }, 3000);
       }
 
-      const registerUserPrecheck = async () => {
-        try {
-            if (registerUsername.value === "") {
-                showToastMessage("Please enter all details!", "error");
-                return;
-            }
-
-            const resp = await window.fetch("[[ .ProxyURL ]]/api/v1/register-user-precheck", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    username: registerUsername.value,
-                }),
-            });
-
-            const registerPrecheckResponseBody = await resp.json();
-            console.log("Response from Register Precheck", registerPrecheckResponseBody)
-        } catch (error) {
-            console.error(error);
-        }
-      }
-
       const app = createApp({
         setup() {
           return {
@@ -291,7 +282,6 @@
             modalWindowActive,
             currMnemonic,
             mnemonicCopied,
-            registerUserPrecheck
           };
         },
       });
