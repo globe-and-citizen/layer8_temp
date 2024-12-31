@@ -10,6 +10,7 @@ import (
 type IRepository interface {
 	// Resource Server methods
 	RegisterUser(req dto.RegisterUserDTO, hashedPassword string, salt string) error
+	RegisterUserv2(req dto.RegisterUserDTOv2) error
 	FindUser(userId uint) (models.User, error)
 	LoginPreCheckUser(req dto.LoginPrecheckDTO) (string, string, error)
 	LoginPreCheckClient(req dto.LoginPrecheckDTO) (string, string, error)

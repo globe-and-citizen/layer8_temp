@@ -10,6 +10,17 @@ type RegisterUserDTO struct {
 	PublicKey   []byte `json:"public_key" validate:"required"`
 }
 
+type RegisterUserDTOv2 struct {
+	Username    string `json:"username" validate:"required,min=3,max=50"`
+	FirstName   string `json:"first_name" validate:"required"`
+	LastName    string `json:"last_name"`
+	DisplayName string `json:"display_name"`
+	Country     string `json:"country"`
+	PublicKey   []byte `json:"public_key" validate:"required"`
+	StoredKey   string `json:"stored_key" validate:"required"`
+	ServerKey   string `json:"server_key" validate:"required"`
+}
+
 type LoginUserDTO struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
