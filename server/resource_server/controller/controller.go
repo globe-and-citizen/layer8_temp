@@ -1,6 +1,10 @@
 package controller
 
 import (
+	"crypto/hmac"
+	"crypto/sha1"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +19,8 @@ import (
 	"globe-and-citizen/layer8/server/resource_server/models"
 	"globe-and-citizen/layer8/server/resource_server/repository"
 	"globe-and-citizen/layer8/server/resource_server/utils"
+
+	"github.com/xdg-go/pbkdf2"
 )
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
