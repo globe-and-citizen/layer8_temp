@@ -251,6 +251,8 @@ func Server(resourceService interfaces.IService, oauthService *oauthSvc.Service)
 				Ctl.LoginUserPage(w, r)
 			case path == "/user-register-page":
 				Ctl.RegisterUserPage(w, r)
+			case path == "/v2/user-register-page":
+				Ctl.RegisterUserPageV2(w, r)
 			case path == "/input-your-email-page":
 				Ctl.InputYourEmailPage(w, r)
 			case path == "/input-verification-code-page":

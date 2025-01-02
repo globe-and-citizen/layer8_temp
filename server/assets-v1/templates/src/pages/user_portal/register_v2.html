@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="/assets-v1/templates/assets/styles/modal.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/assets-v1/templates/assets/styles/output.css"
+    />
+    <link rel="stylesheet" href="/assets-v1/templates/assets/styles/base.css" />
+    <title>Authentication Page</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+
+    <script src="../assets-v1/templates/assets/js/bundled.js"></script>
+  </head>
+
+  <body>
+    <div id="app">
+      <div id="navbar" class="user-container">
+        <div class="bg-white justify-center items-center my-4">
+          <img
+            src="../assets-v1/images/L8Logo.png"
+            alt="Layer8"
+            width="250"
+            height="535"
+          />
+        </div>
+      </div>
+      <div id="body" class="md:grid md:grid-cols-2 min__width">
+        <div class="mx-10 lg:mx-36">
+          <h1 class="font-bold text-[#4F80E1] text-[40px] text-start mb-2">
+            Register
+          </h1>
+          <p class="font-normal text-xl text-[#414141] text-start mb-5">
+            Enter registration details.
+          </p>
+
+          <div>
+            <div class="mb-3">
+              <label class="text-sm text-[#414141] mb-1 block">Username</label>
+              <input
+                class="w-full bg-white rounded-md border border-[#EADFD8] py-2.5 px-3 placeholder:text-[#414141] focus:outline-none"
+                v-model="registerUsername"
+                placeholder="Username"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="text-sm text-[#414141] mb-1 block"
+                >First Name</label
+              >
+              <input
+                class="w-full bg-white rounded-md border border-[#EADFD8] py-2.5 px-3 placeholder:text-[#414141] focus:outline-none"
+                v-model="registerFirstName"
+                placeholder="First Name"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="text-sm text-[#414141] mb-1 block">Last Name</label>
+              <input
+                class="w-full bg-white rounded-md border border-[#EADFD8] py-2.5 px-3 placeholder:text-[#414141] focus:outline-none"
+                v-model="registerLastName"
+                placeholder="Last Name"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="text-sm text-[#414141] mb-1 block"
+                >Display Name</label
+              >
+              <input
+                class="w-full bg-white rounded-md border border-[#EADFD8] py-2.5 px-3 placeholder:text-[#414141] focus:outline-none"
+                v-model="registerDisplayName"
+                placeholder="Display Name"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="text-sm text-[#414141] mb-1 block">Country</label>
+              <input
+                class="w-full bg-white rounded-md border border-[#EADFD8] py-2.5 px-3 placeholder:text-[#414141] focus:outline-none"
+                v-model="registerCountry"
+                placeholder="Country"
+              />
+            </div>
+            <div class="mb-12">
+              <label class="text-sm text-[#414141] mb-1 block">Password</label>
+              <input
+                class="w-full bg-white rounded-md border border-[#EADFD8] py-2.5 px-3 placeholder:text-[#414141] focus:outline-none"
+                v-model="registerPassword"
+                type="password"
+                placeholder="Password"
+              />
+            </div>
+            <button
+              id="register-user-button"
+              class="w-full bg-[#4F80E1] rounded-lg text-center text-white py-4 mb-4"
+              @click="registerUser"
+            >
+              Register
+            </button>
+            <a
+              class="text-sm text-[#414141] font-normal text-center block cursor-pointer"
+              href="/user-login-page"
+              >Already have an account? <span class="font-bold">Login</span></a
+            >
+          </div>
+        </div>
+
+        <div class="bg-white hidden md:flex lg:flex items-center">
+          <img src="/assets-v1/templates/assets/images/cyber-computer.png" />
+        </div>
+      </div>
+      <div class="modal__dialog" :class="{active: modalWindowActive}">
+        <div class="modal__content">
+          <h3 class="modal__header">
+            Congratulations! You were registered successfully!
+          </h3>
+          <div class="modal__body">
+            <div>
+              <div class="info-message">
+                This is your 12-word recovery phrase:
+              </div>
+              <div
+                :class="mnemonicCopied ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+                class="toast-msg text-white rounded-md transition-opacity"
+              >
+                Copied!
+              </div>
+            </div>
+            <div class="mnemonic_holder">
+              <input
+                class="input-mnemonic"
+                type="text"
+                readonly
+                :value="currMnemonic"
+              />
+              <button @click="copyToClipboard">
+                <svg
+                  fill="#000000"
+                  width="25px"
+                  height="25px"
+                  viewBox="0 0 16 16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M14 12V2H4V0h12v12h-2zM0 4h12v12H0V4zm2 2v8h8V6H2z"
+                    fill-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div class="warning-msg">
+              Save it somewhere safe and never share it with anybody!
+            </div>
+          </div>
+          <div class="modal__footer">
+            <button
+              @click="backToLogin"
+              class="close-button bg-[#4F80E1] rounded-lg text-center text-white py-4"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal__overlay"></div>
+      <div id="footer" class="user-container">
+        <div class="bg-white flex justify-between items-center my-8">
+          <div>
+            <img
+              src="../assets-v1/images/L8Logo.png"
+              alt="Layer8"
+              class="mb-6 md:mb-12 h-[35px] md:w-full md:h-[70px]"
+            />
+            <p
+              class="font-bold text-sm md:text-base text-black text-start self-end"
+            >
+              ©Layer8security 2023.
+            </p>
+          </div>
+          <div>
+            <div
+              class="text-xl font-bold text-black text-end md:text-start mb-0 md:mb-4 lg:mb-6"
+            >
+              Contact
+            </div>
+            <ul
+              class="font-medium text-sm md:text-base text-black text-end md:text-start self-end"
+            >
+              <li>Email: hi@layer8.com</li>
+              <li>Client Support: support@layer8.com</li>
+              <li>Phone number: 0371 525 777</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div
+        :class="showToast ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+        class="fixed top-3 right-3 bg-red-500 text-white p-2 rounded-md transition-opacity ease-in-out duration-500 z-50"
+      >
+        {{ toastMessage }}
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="https://requirejs.org/docs/release/2.3.7/minified/require.js"></script>
+    <script>
+      const { createApp, computed, ref } = Vue;
+      const registerUsername = ref("");
+      const registerPassword = ref("");
+      const registerFirstName = ref("");
+      const registerLastName = ref("");
+      const registerDisplayName = ref("");
+      const registerCountry = ref("");
+      const showToast = ref(false);
+      const toastMessage = ref("");
+      const currMnemonic = ref("");
+      const modalWindowActive = ref(false);
+      const mnemonicCopied = ref(false);
+
+      const copyToClipboard = async () => {
+        await navigator.clipboard.writeText(currMnemonic.value);
+        mnemonicCopied.value = true;
+
+        setTimeout(() => {
+          mnemonicCopied.value = false;
+        }, 1500);
+      };
+
+      const backToLogin = async () => {
+        window.location.href = "[[ .ProxyURL ]]/user-login-page";
+      };
+
+      const registerUser = async () => {
+        try {
+          if (
+            registerUsername.value === "" ||
+            registerPassword.value === "" ||
+            registerFirstName.value === "" ||
+            registerLastName.value === "" ||
+            registerDisplayName.value === "" ||
+            registerCountry.value === ""
+          ) {
+            showToastMessage("Please enter all details!", "error");
+            return;
+          }
+
+          currMnemonic.value = mnemonic.generateBip39Mnemonic();
+          const keyPair = mnemonic.getPrivateAndPublicKeys(currMnemonic.value);
+
+          const responseOne = await window.fetch(
+            "[[ .ProxyURL ]]/api/v2/register-user-precheck",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                username: registerUsername.value,
+                password: registerPassword.value,
+              }),
+            }
+          );
+
+          const registerPrecheckResponseBody = await responseOne.json();
+          if (responseOne.status !== 201) {
+            showToastMessage("Something went wrong!", "error");
+            return;
+          }
+
+        //   For Debugging purposes, to be removed in future
+        //   console.log("Salt: ", registerPrecheckResponseBody.salt);
+        //   console.log(
+        //     "IterCount: ",
+        //     registerPrecheckResponseBody.iterationCount
+        //   );
+
+          const dk = CryptoJS.PBKDF2(
+            registerPassword.value,
+            CryptoJS.enc.Utf8.parse(registerPrecheckResponseBody.salt),
+            {
+              keySize: 32 / 4,
+              iterations: registerPrecheckResponseBody.iterationCount,
+              hasher: CryptoJS.algo.SHA1,
+            }
+          );
+
+          const saltedPassword = dk.toString(CryptoJS.enc.Hex);
+
+          // Hardcoded Client and Server Keys
+          const CLIENT_KEY_ENV = "TEST_CLIENT_KEY";
+          const SERVER_KEY_ENV = "TEST_SERVER_KEY";
+
+          // HMAC for clientKey
+          const clientKeyHmac = CryptoJS.HmacSHA256(
+            CryptoJS.enc.Utf8.parse(saltedPassword),
+            CryptoJS.enc.Utf8.parse(CLIENT_KEY_ENV)
+          );
+          const clientKey = clientKeyHmac.toString(CryptoJS.enc.Hex);
+
+          // HMAC for serverKey
+          const serverKeyHmac = CryptoJS.HmacSHA256(
+            CryptoJS.enc.Utf8.parse(saltedPassword),
+            CryptoJS.enc.Utf8.parse(SERVER_KEY_ENV)
+          );
+          const serverKey = serverKeyHmac.toString(CryptoJS.enc.Hex);
+
+          // SHA256 for storedKey
+          const storedKeyHash = CryptoJS.SHA256(
+            CryptoJS.enc.Utf8.parse(clientKey)
+          );
+          const storedKey = storedKeyHash.toString(CryptoJS.enc.Hex);
+
+        //   console.log("serverKey: ", serverKey);
+        //   console.log("storedKey: ", storedKey);
+
+          const resp = await window.fetch("[[ .ProxyURL ]]/api/v2/register-user", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: registerUsername.value,
+              first_name: registerFirstName.value,
+              last_name: registerLastName.value,
+              display_name: registerDisplayName.value,
+              country: registerCountry.value,
+              public_key: Array.from(keyPair.publicKey),
+              stored_key: storedKey,
+              server_key: serverKey,
+            }),
+          });
+          const registerResponseBody = await resp.json();
+          if (resp.status === 201) {
+              modalWindowActive.value = true;
+          } else if (registerResponseBody.message) {
+            showToastMessage(registerResponseBody.message, "error");
+          } else {
+            showToastMessage("Something went wrong!", "error");
+          }
+        } catch (error) {
+          console.error(error);
+          showToastMessage("Registration failed!", "error");
+        }
+      };
+
+      const showToastMessage = (message, type) => {
+        toastMessage.value = message;
+        showToast.value = true;
+        setTimeout(() => {
+          showToast.value = false;
+        }, 3000);
+      };
+
+      const app = createApp({
+        setup() {
+          return {
+            registerUser,
+            copyToClipboard,
+            backToLogin,
+            registerUsername,
+            registerFirstName,
+            registerLastName,
+            registerDisplayName,
+            registerCountry,
+            registerPassword,
+            toastMessage,
+            showToast,
+            modalWindowActive,
+            currMnemonic,
+            mnemonicCopied,
+          };
+        },
+      });
+
+      app.mount("#app");
+    </script>
+  </body>
+</html>
