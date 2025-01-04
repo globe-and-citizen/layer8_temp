@@ -38,5 +38,5 @@ type IRepository interface {
 	GetClient(id string) (*serverModel.Client, error)
 	SetTTL(key string, value []byte, ttl time.Duration) error
 	GetTTL(key string) ([]byte, error)
-	RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error)
+	RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (error)
 }

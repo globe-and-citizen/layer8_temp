@@ -325,7 +325,7 @@ func (r *Repository) IsBackendURIExists(backendURL string) (bool, error) {
 	return count > 0, nil
 }
 
-func (r *Repository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error) {
+func (r *Repository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (error) {
 	user := models.User{
 		Username:       req.Username,
 		Salt:           salt,
@@ -333,8 +333,8 @@ func (r *Repository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt 
 	}
 
 	if err := r.connection.Create(&user).Error; err != nil {
-		return "", 0, fmt.Errorf("failed to create a new user: %v", err)
+		return fmt.Errorf("failed to create a new user: %v", err)
 	}
 
-	return salt, iterCount, nil
+	return nil
 }

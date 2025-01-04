@@ -1221,7 +1221,7 @@ func TestRegisterPrecheckUser_Success(t *testing.T) {
 
     mock.ExpectQuery(
         regexp.QuoteMeta(
-            `INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","iterationCount") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`,
+            `INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","iteration_count") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`,
         ),
     ).WithArgs(
         req.Username, "", "", "", salt, sqlmock.AnyArg(), "", 0, sqlmock.AnyArg(), iterCount,
@@ -1231,12 +1231,9 @@ func TestRegisterPrecheckUser_Success(t *testing.T) {
 
     mock.ExpectCommit()
 
-    returnedSalt, returnedIterCount, err := repository.RegisterPrecheckUser(req, salt, iterCount)
+    err := repository.RegisterPrecheckUser(req, salt, iterCount)
 
     assert.Nil(t, err, "Error should be nil")
-    assert.Equal(t, salt, returnedSalt)
-    assert.Equal(t, iterCount, returnedIterCount)
-
     assert.Nil(t, mock.ExpectationsWereMet(), "There were unfulfilled expectations!")
 }
 
@@ -1254,7 +1251,7 @@ func TestRegisterPrecheckUser_RepositoryError(t *testing.T) {
 
     mock.ExpectQuery(
         regexp.QuoteMeta(
-            `INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","iterationCount") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`,
+            `INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","iteration_count") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`,
         ),
     ).WithArgs(
         req.Username, "", "", "", salt, sqlmock.AnyArg(), "", 0, sqlmock.AnyArg(), iterCount,
@@ -1262,12 +1259,10 @@ func TestRegisterPrecheckUser_RepositoryError(t *testing.T) {
 
     mock.ExpectRollback()
 
-    returnedSalt, returnedIterCount, err := repository.RegisterPrecheckUser(req, salt, iterCount)
+    err := repository.RegisterPrecheckUser(req, salt, iterCount)
 
     assert.NotNil(t, err, "Expected error due to database error")
     assert.Equal(t, "failed to create a new user: failed to create user", err.Error())
-    assert.Empty(t, returnedSalt, "Salt should be empty in case of error")
-    assert.Equal(t, 0, returnedIterCount, "Iteration count should be zero in case of error")
 
     assert.Nil(t, mock.ExpectationsWereMet(), "There were unfulfilled expectations!")
 }
@@ -1286,7 +1281,7 @@ func TestRegisterPrecheckUser_InsertFailure(t *testing.T) {
 
     mock.ExpectQuery(
         regexp.QuoteMeta(
-            `INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","iterationCount") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`,
+            `INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","iteration_count") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`,
         ),
     ).WithArgs(
         req.Username, "", "", "", salt, sqlmock.AnyArg(), "", 0, sqlmock.AnyArg(), iterCount,
@@ -1294,12 +1289,10 @@ func TestRegisterPrecheckUser_InsertFailure(t *testing.T) {
 
     mock.ExpectRollback()
 
-    returnedSalt, returnedIterCount, err := repository.RegisterPrecheckUser(req, salt, iterCount)
+    err := repository.RegisterPrecheckUser(req, salt, iterCount)
 
     assert.NotNil(t, err, "Expected error due to database insert failure")
     assert.Equal(t, "failed to create a new user: failed to create user", err.Error())
-    assert.Empty(t, returnedSalt, "Salt should be empty in case of error")
-    assert.Equal(t, 0, returnedIterCount, "Iteration count should be zero in case of error")
 
     assert.Nil(t, mock.ExpectationsWereMet(), "There were unfulfilled expectations!")
 }
@@ -1316,12 +1309,10 @@ func TestRegisterPrecheckUser_BeginTransactionFailure(t *testing.T) {
 
     mock.ExpectBegin().WillReturnError(fmt.Errorf("failed to begin transaction"))
 
-    returnedSalt, returnedIterCount, err := repository.RegisterPrecheckUser(req, salt, iterCount)
+    err := repository.RegisterPrecheckUser(req, salt, iterCount)
 
     assert.NotNil(t, err, "Error should not be nil")
 	assert.Contains(t, err.Error(), "failed to begin transaction", "Error message should contain 'failed to begin transaction'")
-    assert.Empty(t, returnedSalt, "Salt should be empty")
-    assert.Equal(t, 0, returnedIterCount, "Iteration count should be zero")
 
     assert.Nil(t, mock.ExpectationsWereMet(), "There were unfulfilled expectations!")
 }
@@ -1339,19 +1330,17 @@ func TestRegisterPrecheckUser_QueryFailure(t *testing.T) {
     mock.ExpectBegin()
     mock.ExpectQuery(
         regexp.QuoteMeta(
-            `INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","iterationCount") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`),
+            `INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","iteration_count") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`),
     ).WithArgs(
         req.Username, "", "", "", salt, sqlmock.AnyArg(), "", 0, sqlmock.AnyArg(), iterCount,
     ).WillReturnError(fmt.Errorf("query execution failed"))
 
     mock.ExpectRollback()
 
-    returnedSalt, returnedIterCount, err := repository.RegisterPrecheckUser(req, salt, iterCount)
+    err := repository.RegisterPrecheckUser(req, salt, iterCount)
 
     assert.NotNil(t, err, "Error should not be nil")
 	assert.Contains(t, err.Error(), "failed to create a new user", "Error message should contain 'failed to create a new user'")
-	assert.Empty(t, returnedSalt, "Salt should be empty")
-    assert.Equal(t, 0, returnedIterCount, "Iteration count should be zero")
 
     assert.Nil(t, mock.ExpectationsWereMet(), "There were unfulfilled expectations!")
 }

@@ -417,9 +417,9 @@ func (r *MemoryRepository) UpdateUserPassword(username string, password string) 
 	return nil
 }
 
-func (r *MemoryRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error) {
+func (r *MemoryRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (error) {
 	if _, exists := r.storage[req.Username]; exists {
-		return "", 0, fmt.Errorf("user already exists: %s", req.Username)
+		return fmt.Errorf("user already exists: %s", req.Username)
 	}
 
 	userID := fmt.Sprintf("%d", len(r.storage))
@@ -441,5 +441,5 @@ func (r *MemoryRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO,
 		"password": key,
 	}
 
-	return salt, iterCount, nil
+	return nil
 }
