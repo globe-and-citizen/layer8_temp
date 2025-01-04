@@ -585,9 +585,8 @@ func RegisterUserPrecheck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-
-	if err := json.NewEncoder(w).Encode(registerUserPrecheckResp); err != nil {
+	resp := utils.BuildResponse(w, http.StatusCreated, "User is successfully registered", registerUserPrecheckResp)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		utils.HandleError(
 			w,
 			http.StatusInternalServerError,
