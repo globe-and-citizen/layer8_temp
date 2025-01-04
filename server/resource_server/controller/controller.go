@@ -579,10 +579,15 @@ func RegisterUserPrecheck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	registerUserPrecheckResp, err := newService.RegisterUserPrecheck(request, iterCount)
+	salt, err := newService.RegisterUserPrecheck(request, iterCount)
 	if err != nil {
 		utils.HandleError(w, http.StatusBadRequest, "Failed to register user", err)
 		return
+	}
+
+	registerUserPrecheckResp := models.RegisterUserPrecheckResponseOutput{
+		Salt:           salt,
+		IterationCount: iterCount,
 	}
 
 	resp := utils.BuildResponse(w, http.StatusCreated, "User is successfully registered", registerUserPrecheckResp)

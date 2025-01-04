@@ -66,7 +66,7 @@ type mockRepository struct {
 	saveProofOfEmailVerification func(userID uint, verificationCode string, proof []byte, zkKeyPairId uint) error
 	setUserEmailVerified         func(userID uint) error
 	registerUser                 func(req dto.RegisterUserDTO, hashedPassword string, salt string) error
-	registerUserPrecheck         func(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error)
+	registerUserPrecheck         func(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (error)
 	registerClient               func(client models.Client) error
 	getUserForUsername           func(username string) (models.User, error)
 	updateUserPassword           func(username string, password string) error
@@ -80,11 +80,11 @@ func (m *mockRepository) RegisterUser(req dto.RegisterUserDTO, hashedPassword st
 	return m.registerUser(req, hashedPassword, salt)
 }
 
-func (m *mockRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error) {
+func (m *mockRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (error) {
 	if m.registerUserPrecheck != nil {
 		return m.registerUserPrecheck(req, salt, iterCount)
 	}
-	return "", 0, nil
+	return nil
 }
 
 func (m *mockRepository) LoginPreCheckUser(req dto.LoginPrecheckDTO) (string, string, error) {
@@ -925,13 +925,11 @@ func TestValidateSignature_Success(t *testing.T) {
 
 func TestRegisterUserPrecheck_Success(t *testing.T) {
 	mockRepo := &mockRepository{
-		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (string, int, error) {
+		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (error) {
 			assert.Equal(t, "test_user", req.Username, "Username should match")
 			assert.NotEmpty(t, rmSalt, "Salt should not be empty")
 			assert.Equal(t, 4096, iterCount, "Iteration count should match")
-
-			return rmSalt, iterCount, nil
-
+			return nil
 		},
 	}
 
@@ -942,17 +940,16 @@ func TestRegisterUserPrecheck_Success(t *testing.T) {
 	}
 	iterCount := 4096
 
-	resp, err := currService.RegisterUserPrecheck(req, iterCount)
+	salt, err := currService.RegisterUserPrecheck(req, iterCount)
 
 	assert.Nil(t, err, "Expected no error during RegisterUserPrecheck")
-	assert.NotEmpty(t, resp.Salt, "Salt should not be empty in the response")
-	assert.Equal(t, iterCount, resp.IterationCount, "Iteration count in response should match")
+	assert.NotEmpty(t, salt, "Salt should not be empty in the response")
 }
 
 func TestRegisterUserPrecheck_RepositoryError(t *testing.T) {
 	mockRepo := &mockRepository{
-		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (string, int, error) {
-			return "", 0, errors.New("repository error")
+		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (error) {
+			return errors.New("repository error")
 		},
 	}
 
@@ -963,18 +960,17 @@ func TestRegisterUserPrecheck_RepositoryError(t *testing.T) {
 	}
 	iterCount := 4096
 
-	resp, err := currService.RegisterUserPrecheck(req, iterCount)
+	salt, err := currService.RegisterUserPrecheck(req, iterCount)
 
 	assert.NotNil(t, err, "Expected an error during RegisterUserPrecheck")
 	assert.Equal(t, "repository error", err.Error(), "Error message should match")
-	assert.Empty(t, resp.Salt, "Salt should be empty in the response")
-	assert.Equal(t, 0, resp.IterationCount, "Iteration count should be zero in the response")
+	assert.Empty(t, salt, "Salt should be empty in the response")
 }
 
 func TestRegisterUserPrecheck_EmptyUsername(t *testing.T) {
 	mockRepo := &mockRepository{
-		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (string, int, error) {
-			return rmSalt, iterCount, nil
+		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (error) {
+			return nil
 		},
 	}
 
@@ -985,19 +981,18 @@ func TestRegisterUserPrecheck_EmptyUsername(t *testing.T) {
 	}
 	iterCount := 4096
 
-	resp, err := currService.RegisterUserPrecheck(req, iterCount)
+	salt, err := currService.RegisterUserPrecheck(req, iterCount)
 
 	assert.Nil(t, err, "Expected no error during RegisterUserPrecheck")
-	assert.NotEmpty(t, resp.Salt, "Salt should not be empty in the response")
-	assert.Equal(t, iterCount, resp.IterationCount, "Iteration count in response should match")
+	assert.NotEmpty(t, salt, "Salt should not be empty in the response")
 }
 
 func TestRegisterUserPrecheck_InvalidIterationCount(t *testing.T) {
 	mockRepo := &mockRepository{
-		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (string, int, error) {
+		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (error) {
 			assert.Equal(t, "test_user", req.Username, "Username should match")
 			assert.Equal(t, 0, iterCount, "Iteration count should match")
-			return rmSalt, iterCount, nil
+			return nil
 		},
 	}
 
@@ -1008,39 +1003,17 @@ func TestRegisterUserPrecheck_InvalidIterationCount(t *testing.T) {
 	}
 	iterCount := 0
 
-	resp, err := currService.RegisterUserPrecheck(req, iterCount)
+	salt, err := currService.RegisterUserPrecheck(req, iterCount)
 
 	assert.Nil(t, err, "Expected no error during RegisterUserPrecheck")
-	assert.NotEmpty(t, resp.Salt, "Salt should not be empty in the response")
-	assert.Equal(t, 0, resp.IterationCount, "Iteration count in response should match")
-}
-
-func TestRegisterUserPrecheck_EmptySalt(t *testing.T) {
-	mockRepo := &mockRepository{
-		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (string, int, error) {
-			return "", iterCount, nil
-		},
-	}
-
-	currService := service.NewService(mockRepo, &verification.EmailVerifier{}, &mocks.MockProofGenerator{})
-
-	req := dto.RegisterUserPrecheckDTO{
-		Username: "test_user",
-	}
-	iterCount := 4096
-
-	resp, err := currService.RegisterUserPrecheck(req, iterCount)
-
-	assert.Nil(t, err, "Expected no error during RegisterUserPrecheck")
-	assert.Empty(t, resp.Salt, "Salt should be empty in the response")
-	assert.Equal(t, iterCount, resp.IterationCount, "Iteration count in response should match")
+	assert.NotEmpty(t, salt, "Salt should not be empty in the response")
 }
 
 func TestRegisterUserPrecheck_RandomSaltGeneration(t *testing.T) {
 	mockRepo := &mockRepository{
-		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (string, int, error) {
+		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, rmSalt string, iterCount int) (error) {
 			assert.NotEmpty(t, rmSalt, "Randomly generated salt should not be empty")
-			return rmSalt, iterCount, nil
+			return nil
 		},
 	}
 
@@ -1051,9 +1024,8 @@ func TestRegisterUserPrecheck_RandomSaltGeneration(t *testing.T) {
 	}
 	iterCount := 4096
 
-	resp, err := currService.RegisterUserPrecheck(req, iterCount)
+	salt, err := currService.RegisterUserPrecheck(req, iterCount)
 
 	assert.Nil(t, err, "Expected no error during RegisterUserPrecheck")
-	assert.NotEmpty(t, resp.Salt, "Salt should not be empty in the response")
-	assert.Equal(t, iterCount, resp.IterationCount, "Iteration count in response should match")
+	assert.NotEmpty(t, salt, "Salt should not be empty in the response")
 }
