@@ -581,7 +581,7 @@ func RegisterUserPrecheck(w http.ResponseWriter, r *http.Request) {
 
 	registerUserPrecheckResp, err := newService.RegisterUserPrecheck(request, iterCount)
 	if err != nil {
-		utils.HandleError(w, http.StatusBadRequest, "Failed to get user profile", err)
+		utils.HandleError(w, http.StatusBadRequest, "Failed to register user", err)
 		return
 	}
 

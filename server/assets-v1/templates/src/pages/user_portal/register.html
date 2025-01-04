@@ -203,12 +203,12 @@
 
       const registerUser = async () => {
         try {
-        //   if (registerUsername.value === "" || registerPassword.value === ""
-        //           || registerFirstName.value === "" || registerLastName.value === ""
-        //           || registerDisplayName.value === "" || registerCountry.value  === "") {
-        //     showToastMessage("Please enter all details!", "error");
-        //     return;
-        //   }
+          if (registerUsername.value === "" || registerPassword.value === ""
+                  || registerFirstName.value === "" || registerLastName.value === ""
+                  || registerDisplayName.value === "" || registerCountry.value  === "") {
+            showToastMessage("Please enter all details!", "error");
+            return;
+          }
 
           const respOne = await window.fetch("[[ .ProxyURL ]]/api/v1/register-user-precheck", {
               method: "POST",
@@ -222,7 +222,7 @@
 
           const registerPrecheckResponseBody = await respOne.json();
           console.log("Response from Register Precheck", registerPrecheckResponseBody)
-          return;
+          // return;
           // From here implementation should be continued
 
           currMnemonic.value = mnemonic.generateBip39Mnemonic();
