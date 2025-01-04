@@ -1892,11 +1892,16 @@ func TestRegisterUserPrecheck_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, rr.Code, "Response code should be 201 Created")
 
-	var response models.RegisterUserPrecheckResponseOutput
+	var response struct {
+		Message string                                  `json:"message"`
+		Data    models.RegisterUserPrecheckResponseOutput `json:"data"`
+	}
 	err = json.NewDecoder(rr.Body).Decode(&response)
 	assert.Nil(t, err, "Response body should be valid JSON")
-	assert.Equal(t, userSalt, response.Salt, "Salt should match the mocked response")
-	assert.Equal(t, 4096, response.IterationCount, "Iteration count should match the mocked response")
+
+	assert.Equal(t, "User is successfully registered", response.Message, "Response message should match")
+	assert.Equal(t, userSalt, response.Data.Salt, "Salt should match the mocked response")
+	assert.Equal(t, 4096, response.Data.IterationCount, "Iteration count should match the mocked response")
 }
 
 func TestRegisterUserPrecheck_InvalidMethod(t *testing.T) {
