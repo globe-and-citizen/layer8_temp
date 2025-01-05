@@ -44,6 +44,12 @@ jobs:
     environment: "production"
     needs: [build-layer8]
     runs-on: ubuntu-latest
+    env:
+      ECS_CLUSTER: "layer8-production"
+      ECS_SERVICE: "layer8-server"
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
     defaults:
       run:
         working-directory: infra/production/layer8
@@ -54,21 +60,11 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      # - name: Install AWS CLI
-      #   run: |
-      #     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-      #     unzip awscliv2.zip
-      #     sudo ./aws/install
-
       - name: Populate Application Environment Variables to S3
         id: populateappenv
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION }}
         run: |
           echo -e "${{ vars.PRODUCTION_APP_ENV }}" >> app.env
-          /usr/local/aws-cli/v2/current/bin/aws s3 cp ./app.env s3://${{ vars.PRODUCTION_S3_APP_ENV_LOCATION }}
+          aws s3 cp ./app.env s3://${{ vars.PRODUCTION_S3_APP_ENV_LOCATION }}
       
       - name: Add Terraform Environment Variables
         id: addtfenv
@@ -94,3 +90,64 @@ jobs:
       - name: Terraform Apply
         id: apply
         run: terraform apply
+
+      - name: Wait for service stability
+        run: |
+          echo "Waiting for ECS service to stabilize..."
+
+          sleep 60
+        
+          MAX_ATTEMPTS=30
+          WAIT_SECONDS=20
+          attempt=1
+        
+          while [ $attempt -le $MAX_ATTEMPTS ]; do
+            DEPLOYMENT_STATUS=$(aws ecs describe-services \
+              --cluster ${{ env.ECS_CLUSTER }} \
+              --services ${{ env.ECS_SERVICE }} \
+              --query 'services[0].deployments[0].status' \
+              --output text)
+            
+            RUNNING_COUNT=$(aws ecs describe-services \
+              --cluster ${{ env.ECS_CLUSTER }} \
+              --services ${{ env.ECS_SERVICE }} \
+              --query 'services[0].runningCount' \
+              --output text)
+            
+            DESIRED_COUNT=$(aws ecs describe-services \
+              --cluster ${{ env.ECS_CLUSTER }} \
+              --services ${{ env.ECS_SERVICE }} \
+              --query 'services[0].desiredCount' \
+              --output text)
+          
+            echo "Attempt $attempt of $MAX_ATTEMPTS"
+            echo "Deployment Status: $DEPLOYMENT_STATUS"
+            echo "Running Count: $RUNNING_COUNT of $DESIRED_COUNT"
+          
+            if [ "$DEPLOYMENT_STATUS" = "PRIMARY" ] && [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ]; then
+            # Additional check for task health
+              UNHEALTHY_COUNT=$(aws ecs describe-services \
+                --cluster ${{ env.ECS_CLUSTER }} \
+                --services ${{ env.ECS_SERVICE }} \
+                --query 'services[0].deployments[0].failedTasks' \
+                --output text)
+              
+              if [ "$UNHEALTHY_COUNT" = "0" ]; then
+                echo "Deployment completed successfully!"
+                exit 0
+              fi
+            fi
+          
+            if [ "$DEPLOYMENT_STATUS" = "FAILED" ]; then
+              echo "Deployment failed!"
+              exit 1
+            fi
+          
+            echo "Waiting $WAIT_SECONDS seconds before next check..."
+            sleep $WAIT_SECONDS
+          
+            attempt=$((attempt + 1))
+          done
+        
+          echo "Deployment did not stabilize within the timeout period"
+          exit 1
