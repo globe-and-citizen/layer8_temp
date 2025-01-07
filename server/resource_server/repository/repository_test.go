@@ -3,17 +3,18 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/stretchr/testify/assert"
 	"globe-and-citizen/layer8/server/resource_server/dto"
 	"globe-and-citizen/layer8/server/resource_server/interfaces"
 	"globe-and-citizen/layer8/server/resource_server/models"
 	"globe-and-citizen/layer8/server/resource_server/utils"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"regexp"
 	"testing"
 	"time"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 const id uint = 1
@@ -83,11 +84,11 @@ func TestRegisterUser_FailToInsertANewUserRecord(t *testing.T) {
 
 	mock.ExpectQuery(
 		regexp.QuoteMeta(
-			`INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`,
+			`INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","server_key","stored_key") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`,
 		),
 	).WithArgs(
 		username, userPassword, userFirstName, userLastName,
-		userSalt, sqlmock.AnyArg(), sqlmock.AnyArg(), 0, publicKey,
+		userSalt, sqlmock.AnyArg(), sqlmock.AnyArg(), 0, publicKey, sqlmock.AnyArg(), sqlmock.AnyArg(),
 	).WillReturnError(
 		fmt.Errorf("could not insert a new user record"),
 	)
@@ -116,11 +117,11 @@ func TestRegisterUser_FailToInsertANewUserMetadataRecord(t *testing.T) {
 
 	mock.ExpectQuery(
 		regexp.QuoteMeta(
-			`INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`,
+			`INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","server_key","stored_key") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`,
 		),
 	).WithArgs(
 		username, userPassword, userFirstName, userLastName, userSalt,
-		sqlmock.AnyArg(), sqlmock.AnyArg(), 0, publicKey,
+		sqlmock.AnyArg(), sqlmock.AnyArg(), 0, publicKey, sqlmock.AnyArg(), sqlmock.AnyArg(),
 	).WillReturnRows(
 		sqlmock.NewRows(
 			[]string{
@@ -165,11 +166,11 @@ func TestRegisterUser_Success(t *testing.T) {
 
 	mock.ExpectQuery(
 		regexp.QuoteMeta(
-			`INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`,
+			`INSERT INTO "users" ("username","password","first_name","last_name","salt","email_proof","verification_code","zk_key_pair_id","public_key","server_key","stored_key") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`,
 		),
 	).WithArgs(
 		username, userPassword, userFirstName, userLastName, userSalt,
-		sqlmock.AnyArg(), sqlmock.AnyArg(), 0, publicKey,
+		sqlmock.AnyArg(), sqlmock.AnyArg(), 0, publicKey, sqlmock.AnyArg(), sqlmock.AnyArg(),
 	).WillReturnRows(
 		sqlmock.NewRows(
 			[]string{

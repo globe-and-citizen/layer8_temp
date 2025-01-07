@@ -107,7 +107,7 @@ func InitTunnel(w http.ResponseWriter, r *http.Request) {
 
 	// Convert resBodyTemp to []byte
 
-	// resBodyTempBytes := resBodyTemp.Bytes()
+	resBodyTempBytes := resBodyTemp.Bytes()
 
 	// Make a copy of the response body to send back to client
 	res.Body = io.NopCloser(bytes.NewBuffer(resBodyTemp.Bytes()))
@@ -119,8 +119,8 @@ func InitTunnel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// server_pubKeyECDH, err := utilities.B64ToJWK(string(resBodyTempBytes))
-	server_pubKeyECDH, err := utilities.B64ToJWK(res.Header.Get("server_pubKeyECDH"))
+	server_pubKeyECDH, err := utilities.B64ToJWK(string(resBodyTempBytes))
+	// server_pubKeyECDH, err := utilities.B64ToJWK(res.Header.Get("server_pubKeyECDH"))
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)

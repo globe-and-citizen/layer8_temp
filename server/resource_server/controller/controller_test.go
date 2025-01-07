@@ -236,6 +236,7 @@ func TestRegisterUserHandler_RequestJsonIsMalformed(t *testing.T) {
 
 	mockService := &MockService{}
 	req = req.WithContext(context.WithValue(req.Context(), "service", mockService))
+	// setMockServiceInContext(req)
 
 	rr := httptest.NewRecorder()
 
