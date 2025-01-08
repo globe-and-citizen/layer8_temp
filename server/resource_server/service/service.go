@@ -276,3 +276,7 @@ func (s *service) RegisterUserPrecheck(req dto.RegisterUserPrecheckDTO, iterCoun
 
 	return rmSalt, nil
 }
+
+func (s *service) RegisterUserv2(req dto.RegisterUserDTOv2) error {
+	return s.repository.RegisterUserv2(req)
+}
