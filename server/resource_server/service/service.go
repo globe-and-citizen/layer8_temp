@@ -39,10 +39,6 @@ func (s *service) RegisterUser(req dto.RegisterUserDTO) error {
 	return s.repository.RegisterUser(req, hashedAndSaltedPass, rmSalt)
 }
 
-func (s *service) RegisterUserv2(req dto.RegisterUserDTOv2) error {
-	return s.repository.RegisterUserv2(req)
-}
-
 func (s *service) RegisterClient(req dto.RegisterClientDTO) error {
 	clientUUID := utils.GenerateUUID()
 	clientSecret := utils.GenerateSecret(utils.SecretSize)
@@ -279,4 +275,8 @@ func (s *service) RegisterUserPrecheck(req dto.RegisterUserPrecheckDTO, iterCoun
 	}
 
 	return rmSalt, nil
+}
+
+func (s *service) RegisterUserv2(req dto.RegisterUserDTOv2) error {
+	return s.repository.RegisterUserv2(req)
 }
