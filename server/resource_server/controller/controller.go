@@ -566,7 +566,7 @@ func RegisterUserPrecheck(w http.ResponseWriter, r *http.Request) {
 
 	newService, ok := r.Context().Value("service").(interfaces.IService)
 	if !ok {
-		utils.HandleError(w, http.StatusInternalServerError, "Service not found in context", nil)
+		utils.HandleError(w, http.StatusInternalServerError, "Service not found in context", fmt.Errorf("error"))
 		return
 	}
 

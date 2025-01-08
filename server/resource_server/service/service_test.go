@@ -240,10 +240,6 @@ func (m *mockRepository) UpdateUserPassword(username string, password string) er
 	return m.updateUserPassword(username, password)
 }
 
-func (m *mockRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error) {
-	return "test_user", 4096, nil
-}
-
 func TestRegisterUser_RepositoryFailedToStoreUserData(t *testing.T) {
 	mockRepo := &mockRepository{
 		registerUser: func(req dto.RegisterUserDTO, hashedPassword string, salt string) error {

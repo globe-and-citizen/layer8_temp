@@ -30,7 +30,7 @@ type IRepository interface {
 	GetLatestZkSnarksKeys() (models.ZkSnarksKeyPair, error)
 	GetUserForUsername(username string) (models.User, error)
 	UpdateUserPassword(username string, password string) error
-	RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error)
+	RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) error
 	// Oauth2 methods
 	LoginUserPrecheck(username string) (string, error)
 	GetUser(username string) (*serverModel.User, error)
@@ -40,5 +40,4 @@ type IRepository interface {
 	GetClient(id string) (*serverModel.Client, error)
 	SetTTL(key string, value []byte, ttl time.Duration) error
 	GetTTL(key string) ([]byte, error)
-	RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (error)
 }

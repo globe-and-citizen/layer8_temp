@@ -69,20 +69,6 @@ func (r *Repository) RegisterUser(req dto.RegisterUserDTO, hashedPassword string
 	return nil
 }
 
-func (r *Repository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error) {
-	user := models.User{
-		Username:  req.Username,
-		Salt:      salt,
-		PublicKey: []byte("0000"),
-	}
-
-	if err := r.connection.Create(&user).Error; err != nil {
-		return "", 0, fmt.Errorf("failed to create a new user: %v", err)
-	}
-
-	return salt, iterCount, nil
-}
-
 func (r *Repository) RegisterUserv2(req dto.RegisterUserDTOv2) error {
 	var user models.User
 
@@ -392,11 +378,12 @@ func (r *Repository) IsBackendURIExists(backendURL string) (bool, error) {
 	return count > 0, nil
 }
 
-func (r *Repository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (error) {
+func (r *Repository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) error {
 	user := models.User{
 		Username:       req.Username,
 		Salt:           salt,
 		IterationCount: iterCount,
+		PublicKey:      make([]byte, 32),
 	}
 
 	if err := r.connection.Create(&user).Error; err != nil {
