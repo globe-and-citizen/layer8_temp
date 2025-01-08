@@ -19,7 +19,6 @@ CREATE TABLE users (
     first_name character varying(50) NOT NULL,
     last_name character varying(50) NOT NULL,
     salt character varying(255) DEFAULT 'ThisIsARandomSalt123!@#'::character varying NOT NULL,
-    iterationCount integer,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
