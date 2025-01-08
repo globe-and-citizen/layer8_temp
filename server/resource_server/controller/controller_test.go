@@ -1939,7 +1939,7 @@ func TestRegisterUserPrecheck_InvalidIterationCount(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, rr.Code, "Response code should be 201 Created")
 
 	var response struct {
-		Message string                                  `json:"message"`
+		Message string                                    `json:"message"`
 		Data    models.RegisterUserPrecheckResponseOutput `json:"data"`
 	}
 	err = json.NewDecoder(rr.Body).Decode(&response)
