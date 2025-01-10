@@ -1915,16 +1915,11 @@ func TestRegisterUserPrecheck_InvalidIterationCount(t *testing.T) {
 	}
 
 	mockService := &MockService{
-		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, iterCount int) (models.RegisterUserPrecheckResponseOutput, error) {
+		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, iterCount int) (string, error) {
 			assert.Equal(t, "test_user", req.Username, "Username should match")
 			assert.Equal(t, 4096, iterCount, "Iteration count should match")
 
-			registerUserPrecheckResp := models.RegisterUserPrecheckResponseOutput{
-				Salt:           userSalt,
-				IterationCount: iterCount,
-			}
-
-			return registerUserPrecheckResp, nil
+			return userSalt, nil
 		},
 	}
 
@@ -1938,16 +1933,9 @@ func TestRegisterUserPrecheck_InvalidIterationCount(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, rr.Code, "Response code should be 201 Created")
 
-	var response struct {
-		Message string                                    `json:"message"`
-		Data    models.RegisterUserPrecheckResponseOutput `json:"data"`
-	}
-	err = json.NewDecoder(rr.Body).Decode(&response)
-	assert.Nil(t, err, "Response body should be valid JSON")
+	response := decodeResponseBodyForResponse(t, rr)
 
 	assert.Equal(t, "User is successfully registered", response.Message, "Response message should match")
-	assert.Equal(t, userSalt, response.Data.Salt, "Salt should match the mocked response")
-	assert.Equal(t, 4096, response.Data.IterationCount, "Iteration count should match the mocked response")
 }
 
 func TestRegisterUserPrecheck_InvalidMethod(t *testing.T) {
