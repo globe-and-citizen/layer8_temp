@@ -33,7 +33,7 @@
                     @focus="isNameFocused = true"
                     @blur="isNameFocused = false"
                     class="w-full px-4 pt-10 pb-3 border-l-4 focus:border-blue-500 focus:outline-none text-lg text-[#3751FE]"
-                    placeholder=" "
+                    :placeholder="isNameFocused ? 'Project name' : ' '"
                   />
                   <label
                     for="name"
@@ -52,7 +52,7 @@
                     @focus="isRUFocused = true"
                     @blur="isRUFocused = false"
                     class="w-full px-4 pt-10 pb-3 border-l-4 focus:border-blue-500 focus:outline-none text-lg text-[#3751FE]"
-                    placeholder=" "
+                    :placeholder="isRUFocused ? 'http://localhost:5173/oauth' : ' '"
                   />
                   <label
                     for="redirect_uri"
@@ -71,7 +71,7 @@
                     @focus="isBUFocused = true"
                     @blur="checkBackendUri"
                     class="w-full px-4 pt-10 pb-3 border-l-4 focus:border-blue-500 focus:outline-none text-lg text-[#3751FE]"
-                    placeholder=" "
+                    :placeholder="isBUFocused ? 'localhost:3000' : ' '"
                   />
                   <label
                     for="backend_uri"
@@ -90,7 +90,7 @@
                     @focus="isUsernameFocused = true"
                     @blur="isUsernameFocused = false"
                     class="w-full px-4 pt-10 pb-3 border-l-4 focus:border-blue-500 focus:outline-none text-lg text-[#3751FE]"
-                    placeholder=" "
+                    :placeholder="isUsernameFocused ? 'Username' : ' '"
                   />
                   <label
                     for="username"
@@ -109,7 +109,7 @@
                     @focus="isPasswordFocused = true"
                     @blur="isPasswordFocused = false"
                     class="w-full px-4 pt-10 pb-3 border-l-4 focus:border-blue-500 focus:outline-none text-lg text-[#3751FE]"
-                    placeholder=" "
+                    :placeholder="isPasswordFocused ? 'Password' : ' '"
                   />
                   <label
                     for="password"
@@ -207,6 +207,11 @@
 
       const checkBackendUri = async () => {
         try {
+          if (!backend_uri.value) {
+            isBUFocused.value = false
+            return false;
+          }
+
           isBUFocused.value = false
           const response = await fetch("[[ .ProxyURL ]]/api/v1/check-backend-uri", {
             method: "POST",
