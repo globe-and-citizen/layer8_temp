@@ -425,3 +425,7 @@ func (r *MemoryRepository) UpdateUserPassword(username string, password string) 
 func (r *MemoryRepository) RegisterUserv2(dto dto.RegisterUserDTOv2) error {
 	return nil
 }
+
+func (r *MemoryRepository) UpdateUserPasswordV2(username string, storedKey string, serverKey string) error {
+	return nil
+}

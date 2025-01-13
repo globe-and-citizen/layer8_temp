@@ -392,3 +392,9 @@ func (r *Repository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt 
 
 	return nil
 }
+
+func (r *Repository) UpdateUserPasswordV2(username string, storedKey string, serverKey string) error {
+	return r.connection.Model(&models.User{}).
+		Where("username=?", username).
+		Updates(map[string]interface{}{"stored_key": storedKey, "server_key": serverKey}).Error
+}

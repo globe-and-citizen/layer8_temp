@@ -31,6 +31,7 @@ type IRepository interface {
 	GetUserForUsername(username string) (models.User, error)
 	UpdateUserPassword(username string, password string) error
 	RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) error
+	UpdateUserPasswordV2(username string, storedKey string, serverKey string) error
 	// Oauth2 methods
 	LoginUserPrecheck(username string) (string, error)
 	GetUser(username string) (*serverModel.User, error)

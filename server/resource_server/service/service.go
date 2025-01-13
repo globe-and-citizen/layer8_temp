@@ -280,3 +280,7 @@ func (s *service) RegisterUserPrecheck(req dto.RegisterUserPrecheckDTO, iterCoun
 func (s *service) RegisterUserv2(req dto.RegisterUserDTOv2) error {
 	return s.repository.RegisterUserv2(req)
 }
+
+func (s *service) UpdateUserPasswordV2(username string, storedKey string, serverKey string) error {
+	return s.repository.UpdateUserPasswordV2(username, storedKey, serverKey)
+}

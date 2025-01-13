@@ -30,4 +30,5 @@ type IService interface {
 	ValidateSignature(message string, signature []byte, publicKey []byte) error
 	UpdateUserPassword(username string, newPassword string, salt string) error
 	RegisterUserPrecheck(req dto.RegisterUserPrecheckDTO, iterCount int) (string, error)
+	UpdateUserPasswordV2(username string, storedKey string, serverKey string) error
 }
