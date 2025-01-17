@@ -24,3 +24,8 @@ type ClientResponseOutput struct {
 	RedirectURI string `json:"redirect_uri"`
 	BackendURI  string `json:"backend_uri"`
 }
+
+type RegisterUserPrecheckResponseOutput struct {
+	Salt           string `json:"salt"`
+	IterationCount int    `json:"iterationCount"`
+}

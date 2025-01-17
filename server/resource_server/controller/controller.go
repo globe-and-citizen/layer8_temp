@@ -25,6 +25,9 @@ func LoginUserPage(w http.ResponseWriter, r *http.Request) {
 func RegisterUserPage(w http.ResponseWriter, r *http.Request) {
 	ServeFileHandler(w, r, "assets-v1/templates/src/pages/user_portal/register.html")
 }
+func RegisterUserPageV2(w http.ResponseWriter, r *http.Request) {
+	ServeFileHandler(w, r, "assets-v1/templates/src/pages/user_portal/register_v2.html")
+}
 func ClientProfilePage(w http.ResponseWriter, r *http.Request) {
 	ServeFileHandler(w, r, "assets-v1/templates/src/pages/client_portal/profile.html")
 }
@@ -553,4 +556,59 @@ func validateHttpMethod(w http.ResponseWriter, actualMethod string, expectedMeth
 	}
 
 	return true
+}
+
+func RegisterUserPrecheck(w http.ResponseWriter, r *http.Request) {
+
+	newService := r.Context().Value("service").(interfaces.IService)
+
+	request, err := utils.DecodeJsonFromRequest[dto.RegisterUserPrecheckDTO](w, r.Body)
+	if err != nil {
+		return
+	}
+
+	registerUserPrecheckResp, err := newService.RegisterUserPrecheck(request, 4096)
+	if err != nil {
+		utils.HandleError(w, http.StatusBadRequest, "Failed to get user profile", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(registerUserPrecheckResp); err != nil {
+		utils.HandleError(
+			w,
+			http.StatusInternalServerError,
+			"Internal error: could not encode response into json",
+			err,
+		)
+	}
+}
+
+func RegisterUserHandlerv2(w http.ResponseWriter, r *http.Request) {
+	if !validateHttpMethod(w, r.Method, http.MethodPost) {
+		return
+	}
+
+	newService := r.Context().Value("service").(interfaces.IService)
+
+	request, err := utils.DecodeJsonFromRequest[dto.RegisterUserDTOv2](w, r.Body)
+	if err != nil {
+		return
+	}
+
+	err = newService.RegisterUserv2(request)
+	if err != nil {
+		utils.HandleError(w, http.StatusBadRequest, "Failed to register user", err)
+		return
+	}
+
+	res := utils.BuildResponseWithNoBody(w, http.StatusCreated, "User registered successfully")
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		utils.HandleError(
+			w,
+			http.StatusInternalServerError,
+			"Internal error: could not encode response into json",
+			err,
+		)
+	}
 }

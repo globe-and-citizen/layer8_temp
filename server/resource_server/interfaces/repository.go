@@ -10,6 +10,7 @@ import (
 type IRepository interface {
 	// Resource Server methods
 	RegisterUser(req dto.RegisterUserDTO, hashedPassword string, salt string) error
+	RegisterUserv2(req dto.RegisterUserDTOv2) error
 	FindUser(userId uint) (models.User, error)
 	LoginPreCheckUser(req dto.LoginPrecheckDTO) (string, string, error)
 	LoginPreCheckClient(req dto.LoginPrecheckDTO) (string, string, error)
@@ -29,6 +30,7 @@ type IRepository interface {
 	GetLatestZkSnarksKeys() (models.ZkSnarksKeyPair, error)
 	GetUserForUsername(username string) (models.User, error)
 	UpdateUserPassword(username string, password string) error
+	RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error)
 	// Oauth2 methods
 	LoginUserPrecheck(username string) (string, error)
 	GetUser(username string) (*serverModel.User, error)

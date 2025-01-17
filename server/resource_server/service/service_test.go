@@ -3,7 +3,6 @@ package service_test
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/ethereum/go-ethereum/crypto"
 	serverModels "globe-and-citizen/layer8/server/models"
 	"globe-and-citizen/layer8/server/resource_server/dto"
 	"globe-and-citizen/layer8/server/resource_server/emails/verification"
@@ -14,6 +13,8 @@ import (
 	"globe-and-citizen/layer8/server/resource_server/utils/mocks"
 	"testing"
 	"time"
+
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -29,6 +30,9 @@ const displayName = "display_name"
 const country = "country"
 const verificationCode = "123456"
 const userSalt = "salt"
+const publicKey = "0xaaaaa"
+const serverKey = "0xbbbbb"
+const storedKey = "0xccccc"
 
 const redirectUri = "redirect_uri"
 const backendUri = "backend_uri"
@@ -64,6 +68,7 @@ type mockRepository struct {
 	saveProofOfEmailVerification func(userID uint, verificationCode string, proof []byte, zkKeyPairId uint) error
 	setUserEmailVerified         func(userID uint) error
 	registerUser                 func(req dto.RegisterUserDTO, hashedPassword string, salt string) error
+	registerUserv2               func(req dto.RegisterUserDTOv2) error
 	registerClient               func(client models.Client) error
 	getUserForUsername           func(username string) (models.User, error)
 	updateUserPassword           func(username string, password string) error
@@ -75,6 +80,10 @@ func (m *mockRepository) FindUser(userId uint) (models.User, error) {
 
 func (m *mockRepository) RegisterUser(req dto.RegisterUserDTO, hashedPassword string, salt string) error {
 	return m.registerUser(req, hashedPassword, salt)
+}
+
+func (m *mockRepository) RegisterUserv2(req dto.RegisterUserDTOv2) error {
+	return m.registerUserv2(req)
 }
 
 func (m *mockRepository) LoginPreCheckUser(req dto.LoginPrecheckDTO) (string, string, error) {
@@ -225,6 +234,10 @@ func (m *mockRepository) GetUserForUsername(username string) (models.User, error
 
 func (m *mockRepository) UpdateUserPassword(username string, password string) error {
 	return m.updateUserPassword(username, password)
+}
+
+func (m *mockRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) (string, int, error) {
+	return "test_user", 4096, nil
 }
 
 func TestRegisterUser_RepositoryFailedToStoreUserData(t *testing.T) {
@@ -908,6 +921,69 @@ func TestValidateSignature_Success(t *testing.T) {
 		message,
 		signature[:64],
 		crypto.FromECDSAPub(&privateKey.PublicKey),
+	)
+
+	assert.Nil(t, err)
+}
+
+func TestRegisterUserv2_RepositoryFailedToStoreUserData(t *testing.T) {
+	mockRepo := &mockRepository{
+		registerUserv2: func(req dto.RegisterUserDTOv2) error {
+			assert.Equal(t, username, req.Username)
+			assert.Equal(t, firstName, req.FirstName)
+			assert.Equal(t, lastName, req.LastName)
+			assert.Equal(t, displayName, req.DisplayName)
+			assert.Equal(t, country, req.Country)
+			assert.Equal(t, []byte(publicKey), req.PublicKey)
+			assert.Equal(t, storedKey, req.StoredKey)
+			assert.Equal(t, serverKey, req.ServerKey)
+
+			return fmt.Errorf("failed to store a user")
+		},
+	}
+	currService := service.NewService(mockRepo, &verification.EmailVerifier{}, &mocks.MockProofGenerator{})
+
+	err := currService.RegisterUserv2(
+		dto.RegisterUserDTOv2{
+			Username:    username,
+			FirstName:   firstName,
+			LastName:    lastName,
+			DisplayName: displayName,
+			Country:     country,
+			PublicKey:   []byte(publicKey),
+			StoredKey:   storedKey,
+			ServerKey:   serverKey,
+		},
+	)
+
+	assert.NotNil(t, err)
+}
+
+func TestRegisterUserv2_Success(t *testing.T) {
+	mockRepo := &mockRepository{
+		registerUserv2: func(req dto.RegisterUserDTOv2) error {
+			assert.Equal(t, username, req.Username)
+			assert.Equal(t, firstName, req.FirstName)
+			assert.Equal(t, lastName, req.LastName)
+			assert.Equal(t, displayName, req.DisplayName)
+			assert.Equal(t, country, req.Country)
+
+			return nil
+		},
+	}
+	currService := service.NewService(mockRepo, &verification.EmailVerifier{}, &mocks.MockProofGenerator{})
+
+	err := currService.RegisterUserv2(
+		dto.RegisterUserDTOv2{
+			Username:    username,
+			FirstName:   firstName,
+			LastName:    lastName,
+			DisplayName: displayName,
+			Country:     country,
+			PublicKey:   []byte(publicKey),
+			StoredKey:   storedKey,
+			ServerKey:   serverKey,
+		},
 	)
 
 	assert.Nil(t, err)

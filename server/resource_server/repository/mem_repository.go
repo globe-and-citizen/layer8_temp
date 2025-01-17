@@ -26,6 +26,10 @@ func NewMemoryRepository() interfaces.IRepository {
 	}
 }
 
+func (r *MemoryRepository) RegisterPrecheckUser(dto.RegisterUserPrecheckDTO, string, int) (string, int, error) {
+	return "", 0, nil
+}
+
 func (r *MemoryRepository) RegisterUser(req dto.RegisterUserDTO, hashedPassword string, salt string) error {
 	rmSalt := utils.GenerateRandomSalt(utils.SaltSize)
 	HashedAndSaltedPass := utils.SaltAndHashPassword(req.Password, rmSalt) // what if two user's use the same password?
@@ -414,5 +418,9 @@ func (r *MemoryRepository) GetUserForUsername(username string) (models.User, err
 }
 
 func (r *MemoryRepository) UpdateUserPassword(username string, password string) error {
+	return nil
+}
+
+func (r *MemoryRepository) RegisterUserv2(dto dto.RegisterUserDTOv2) error {
 	return nil
 }
