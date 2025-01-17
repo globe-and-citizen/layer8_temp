@@ -108,7 +108,7 @@ func (ms *MockService) FindUser(userID uint) (models.User, error) {
 func (ms *MockService) VerifyEmail(userID uint, userEmail string) error {
 	return ms.verifyEmail(userID, userEmail)
 }
-
+df
 func (ms *MockService) CheckEmailVerificationCode(userID uint, code string) error {
 	return ms.checkEmailVerificationCode(userID, code)
 }
