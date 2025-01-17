@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -56,6 +58,23 @@ func GenerateRandomSalt(saltSize int) string {
 func SaltAndHashPassword(password string, salt string) string {
 	dk := pbkdf2.Key([]byte(password), []byte(salt), 4096, 32, sha1.New)
 	return hex.EncodeToString(dk[:])
+}
+
+func SaltAndHashPasswordv2(password string, salt string, iterCount int) string {
+	dk := pbkdf2.Key([]byte(password), []byte(salt), iterCount, 32, sha1.New)
+	return hex.EncodeToString(dk[:])
+}
+
+func GenerateHmacSHA256Hash(secretKey string, saltedPassword string) string {
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(saltedPassword))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func GenerateSHA256Hash(clientKey string) string {
+	h := sha256.New()
+	h.Write([]byte(clientKey))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func CheckPassword(password string, salt string, hash string) bool {

@@ -7,6 +7,7 @@ import (
 
 type IService interface {
 	RegisterUser(req dto.RegisterUserDTO) error
+	RegisterUserv2(req dto.RegisterUserDTOv2) error
 	LoginPreCheckUser(req dto.LoginPrecheckDTO) (models.LoginPrecheckResponseOutput, error)
 	LoginPreCheckClient(req dto.LoginPrecheckDTO) (models.LoginPrecheckResponseOutput, error)
 	LoginUser(req dto.LoginUserDTO) (models.LoginUserResponseOutput, error)
@@ -28,4 +29,5 @@ type IService interface {
 	GetUserForUsername(username string) (models.User, error)
 	ValidateSignature(message string, signature []byte, publicKey []byte) error
 	UpdateUserPassword(username string, newPassword string, salt string) error
+	RegisterUserPrecheck(req dto.RegisterUserPrecheckDTO, iterCount int) (string, error)
 }

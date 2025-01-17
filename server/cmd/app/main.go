@@ -5,9 +5,6 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"github.com/consensys/gnark-crypto/ecc"
-	"github.com/consensys/gnark/backend/groth16"
-	"github.com/consensys/gnark/constraint"
 	"globe-and-citizen/layer8/server/config"
 	"globe-and-citizen/layer8/server/handlers"
 	"globe-and-citizen/layer8/server/opentelemetry"
@@ -24,6 +21,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/constraint"
 
 	Ctl "globe-and-citizen/layer8/server/resource_server/controller"
 	"globe-and-citizen/layer8/server/resource_server/dto"
@@ -250,6 +251,8 @@ func Server(resourceService interfaces.IService, oauthService *oauthSvc.Service)
 				Ctl.LoginUserPage(w, r)
 			case path == "/user-register-page":
 				Ctl.RegisterUserPage(w, r)
+			case path == "/v2/user-register-page":
+				Ctl.RegisterUserPageV2(w, r)
 			case path == "/input-your-email-page":
 				Ctl.InputYourEmailPage(w, r)
 			case path == "/input-verification-code-page":
@@ -264,6 +267,8 @@ func Server(resourceService interfaces.IService, oauthService *oauthSvc.Service)
 				Ctl.ResetPasswordPage(w, r)
 			case path == "/api/v1/register-user":
 				Ctl.RegisterUserHandler(w, r)
+			case path == "/api/v1/register-user-precheck":
+				Ctl.RegisterUserPrecheck(w, r)
 			case path == "/api/v1/register-client":
 				Ctl.RegisterClientHandler(w, r)
 			case path == "/api/v1/getClient":
@@ -290,6 +295,10 @@ func Server(resourceService interfaces.IService, oauthService *oauthSvc.Service)
 				Ctl.CheckBackendURI(w, r)
 			case path == "/api/v1/reset-password":
 				Ctl.ResetPasswordHandler(w, r)
+			case path == "/api/v2/register-user-precheck":
+				Ctl.RegisterUserPrecheck(w, r)
+			case path == "/api/v2/register-user":
+				Ctl.RegisterUserHandlerv2(w, r)
 			case path == "/favicon.ico":
 				faviconPath := workingDirectory + "/dist/favicon.ico"
 				http.ServeFile(w, r, faviconPath)
