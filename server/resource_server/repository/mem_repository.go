@@ -18,6 +18,11 @@ type MemoryRepository struct {
 	verificationDataStorage map[string]models.EmailVerificationData
 }
 
+// RegisterPrecheckUser implements interfaces.IRepository.
+func (r *MemoryRepository) RegisterPrecheckUser(req dto.RegisterUserPrecheckDTO, salt string, iterCount int) error {
+	panic("unimplemented")
+}
+
 func NewMemoryRepository() interfaces.IRepository {
 	return &MemoryRepository{
 		storage:                 make(map[string]map[string]string),

@@ -74,6 +74,7 @@ type MockService struct {
 	getUserForUsername                 func(username string) (models.User, error)
 	validateSignature                  func(message string, signature []byte, publicKey []byte) error
 	updateUserPassword                 func(username string, newPassword string, salt string) error
+	registerUserPrecheck               func(req dto.RegisterUserPrecheckDTO, iterCount int) (string, error)
 }
 
 func (ms *MockService) RegisterUser(req dto.RegisterUserDTO) error {
@@ -181,6 +182,10 @@ func (m *MockService) ValidateSignature(message string, signature []byte, public
 
 func (m *MockService) UpdateUserPassword(username string, newPassword string, salt string) error {
 	return m.updateUserPassword(username, newPassword, salt)
+}
+
+func (m *MockService) RegisterUserPrecheck(req dto.RegisterUserPrecheckDTO, iterCount int) (string, error) {
+	return m.registerUserPrecheck(req, iterCount)
 }
 
 func TestRegisterUserHandler_InvalidHttpRequestMethod(t *testing.T) {
@@ -1851,4 +1856,118 @@ func setMockServiceInContext(req *http.Request) *http.Request {
 	mockSvc := &MockService{}
 	ctx := context.WithValue(req.Context(), "service", mockSvc)
 	return req.WithContext(ctx)
+}
+
+func TestRegisterUserPrecheck_Success(t *testing.T) {
+	requestBody := []byte(`{"username": "test_user"}`)
+
+	req, err := http.NewRequest("POST", "/api/v1/register-user-precheck", bytes.NewBuffer(requestBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockService := &MockService{
+		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, iterCount int) (string, error) {
+			assert.Equal(t, "test_user", req.Username, "Username should match")
+			assert.Equal(t, 4096, iterCount, "Iteration count should match")
+
+			return userSalt, nil
+		},
+	}
+
+	req = req.WithContext(context.WithValue(req.Context(), "service", mockService))
+
+	t.Setenv("SCRAM_ITERATION_COUNT", "4096")
+
+	rr := httptest.NewRecorder()
+
+	Ctl.RegisterUserPrecheck(rr, req)
+
+	assert.Equal(t, http.StatusCreated, rr.Code, "Response code should be 201 Created")
+
+	response := decodeResponseBodyForResponse(t, rr)
+
+	assert.Equal(t, "User is successfully registered", response.Message, "Response message should match")
+}
+
+func TestRegisterUserPrecheck_InvalidMethod(t *testing.T) {
+	req, err := http.NewRequest("GET", "/api/v1/register-user-precheck", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	Ctl.RegisterUserPrecheck(rr, req)
+
+	assert.Equal(t, http.StatusMethodNotAllowed, rr.Code, "Expected HTTP 405 Method Not Allowed")
+}
+
+func TestRegisterUserPrecheck_InvalidIterationCount(t *testing.T) {
+	requestBody := []byte(`{
+		"username": "test_user"
+	}`)
+
+	req, err := http.NewRequest("POST", "/api/v1/register-user-precheck", bytes.NewBuffer(requestBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockService := &MockService{}
+	req = req.WithContext(context.WithValue(req.Context(), "service", mockService))
+
+	t.Setenv("SCRAM_ITERATION_COUNT", "invalid_value")
+
+	rr := httptest.NewRecorder()
+
+	Ctl.RegisterUserPrecheck(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code, "Expected HTTP 500 Internal Server Error")
+}
+
+func TestRegisterUserPrecheck_InvalidJSON(t *testing.T) {
+	requestBody := []byte(`invalid_json`)
+
+	req, err := http.NewRequest("POST", "/api/v1/register-user-precheck", bytes.NewBuffer(requestBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockService := &MockService{}
+	req = req.WithContext(context.WithValue(req.Context(), "service", mockService))
+
+	t.Setenv("SCRAM_ITERATION_COUNT", "invalid_value")
+
+	rr := httptest.NewRecorder()
+
+	Ctl.RegisterUserPrecheck(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code, "Expected HTTP 500 Internal Server Error")
+}
+
+func TestRegisterUserPrecheck_ServiceError(t *testing.T) {
+	requestBody := []byte(`{
+		"username": "test_user"
+	}`)
+
+	req, err := http.NewRequest("POST", "/api/v1/register-user-precheck", bytes.NewBuffer(requestBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockService := &MockService{
+		registerUserPrecheck: func(req dto.RegisterUserPrecheckDTO, iterCount int) (string, error) {
+			return "", fmt.Errorf("mock service error")
+		},
+	}
+
+	req = req.WithContext(context.WithValue(req.Context(), "service", mockService))
+
+	t.Setenv("SCRAM_ITERATION_COUNT", "4096")
+
+	rr := httptest.NewRecorder()
+
+	Ctl.RegisterUserPrecheck(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code, "Expected HTTP 400 Bad Request")
 }

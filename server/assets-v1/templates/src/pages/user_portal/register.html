@@ -210,6 +210,22 @@
             return;
           }
 
+        //   const respOne = await window.fetch("[[ .ProxyURL ]]/api/v1/register-user-precheck", {
+        //       method: "POST",
+        //       headers: {
+        //           "Content-Type": "application/json",
+        //       },
+        //       body: JSON.stringify({
+        //           username: registerUsername.value,
+        //       }),
+        //   });
+
+        //   const registerPrecheckResponseBody = await respOne.json();
+        //   console.log("Response from Register Precheck", registerPrecheckResponseBody)
+        
+          // return;
+          // From here implementation should be continued
+
           currMnemonic.value = mnemonic.generateBip39Mnemonic();
           const keyPair = mnemonic.getPrivateAndPublicKeys(currMnemonic.value);
 
@@ -234,7 +250,7 @@
           } else if (registerResponseBody.message) {
             showToastMessage(registerResponseBody.message, "error");
           } else {
-            showToastMessage("Something went wrong!", "error");
+            showToastMessage("Something went wrong! <changed for no reason>", "error");
           }
         } catch (error) {
           console.error(error);

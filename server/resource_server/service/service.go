@@ -264,3 +264,14 @@ func (s *service) UpdateUserPassword(username string, newPassword string, salt s
 	hashedPassword := utils.SaltAndHashPassword(newPassword, salt)
 	return s.repository.UpdateUserPassword(username, hashedPassword)
 }
+
+func (s *service) RegisterUserPrecheck(req dto.RegisterUserPrecheckDTO, iterCount int) (string, error) {
+	rmSalt := utils.GenerateRandomSalt(utils.SaltSize)
+
+	err := s.repository.RegisterPrecheckUser(req, rmSalt, iterCount)
+	if err != nil {
+		return "", err
+	}
+
+	return rmSalt, nil
+}
